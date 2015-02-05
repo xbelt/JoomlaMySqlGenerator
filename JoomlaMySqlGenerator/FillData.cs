@@ -35,6 +35,16 @@ namespace JoomlaMySqlGenerator
 
         private void button2_Click(object sender, EventArgs e)
         {
+            using (var command = new MySqlCommand("DELETE FROM categories", MySqlConnectionGenerator.ShortConnection()))
+            {
+                command.ExecuteNonQuery();
+            }
+
+            using (var command = new MySqlCommand("DELETE FROM diseases", MySqlConnectionGenerator.ShortConnection()))
+            {
+                command.ExecuteNonQuery();
+            }
+
             var tables = textBox1.Text.Split(';');
             if (tables.Length != 2)
             {
@@ -51,7 +61,7 @@ namespace JoomlaMySqlGenerator
             {
                 var catDe = (string) (worksheet.Cells[i, "A"] as Excel.Range).Value;
                 var catEn = (string) (worksheet.Cells[i, "B"] as Excel.Range).Value;
-                if (catDe != "")
+                if (catDe != "" && catDe != null)
                 {
                     using (var command = new MySqlCommand("INSERT INTO " + tables[0] + " (De, En) VALUES ('" + catDe + "', '" + catEn + "')", MySqlConnectionGenerator.ShortConnection()))
                     {
@@ -63,9 +73,9 @@ namespace JoomlaMySqlGenerator
                 var disDe = (string) (worksheet.Cells[i, "C"] as Excel.Range).Value;
                 var disEn = (string) (worksheet.Cells[i, "D"] as Excel.Range).Value;
 
-                if (disDe != "")
+                if (disDe != "" && disDe != null)
                 {
-                    using (var command = new MySqlCommand("INSERT INTO " + tables[0] + " (de, en, category_id) VALUES ('" + disDe + "', '" + disEn + "', '" + lastId + "')", MySqlConnectionGenerator.ShortConnection()))
+                    using (var command = new MySqlCommand("INSERT INTO " + tables[1] + " (de, en, category_id) VALUES ('" + disDe + "', '" + disEn + "', '" + lastId + "')", MySqlConnectionGenerator.ShortConnection()))
                     {
                         command.ExecuteNonQuery();
                     }

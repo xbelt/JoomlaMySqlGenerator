@@ -41,13 +41,20 @@
             this.label5 = new System.Windows.Forms.Label();
             this.dbName = new System.Windows.Forms.TextBox();
             this.button3 = new System.Windows.Forms.Button();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.button4 = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             this.SuspendLayout();
             // 
             // dbServer
             // 
-            this.dbServer.Location = new System.Drawing.Point(88, 13);
+            this.dbServer.Location = new System.Drawing.Point(97, 13);
             this.dbServer.Name = "dbServer";
-            this.dbServer.Size = new System.Drawing.Size(184, 20);
+            this.dbServer.Size = new System.Drawing.Size(175, 20);
             this.dbServer.TabIndex = 0;
             this.dbServer.TextChanged += new System.EventHandler(this.dbServer_TextChanged);
             // 
@@ -71,9 +78,9 @@
             // 
             // dbPrefix
             // 
-            this.dbPrefix.Location = new System.Drawing.Point(88, 91);
+            this.dbPrefix.Location = new System.Drawing.Point(97, 91);
             this.dbPrefix.Name = "dbPrefix";
-            this.dbPrefix.Size = new System.Drawing.Size(184, 20);
+            this.dbPrefix.Size = new System.Drawing.Size(175, 20);
             this.dbPrefix.TabIndex = 2;
             this.dbPrefix.TextChanged += new System.EventHandler(this.dbPrefix_TextChanged);
             // 
@@ -88,9 +95,9 @@
             // 
             // dbPassword
             // 
-            this.dbPassword.Location = new System.Drawing.Point(88, 65);
+            this.dbPassword.Location = new System.Drawing.Point(97, 65);
             this.dbPassword.Name = "dbPassword";
-            this.dbPassword.Size = new System.Drawing.Size(184, 20);
+            this.dbPassword.Size = new System.Drawing.Size(175, 20);
             this.dbPassword.TabIndex = 4;
             this.dbPassword.TextChanged += new System.EventHandler(this.dbPassword_TextChanged);
             // 
@@ -105,9 +112,9 @@
             // 
             // dbUser
             // 
-            this.dbUser.Location = new System.Drawing.Point(88, 39);
+            this.dbUser.Location = new System.Drawing.Point(97, 39);
             this.dbUser.Name = "dbUser";
-            this.dbUser.Size = new System.Drawing.Size(184, 20);
+            this.dbUser.Size = new System.Drawing.Size(175, 20);
             this.dbUser.TabIndex = 6;
             this.dbUser.TextChanged += new System.EventHandler(this.dbUser_TextChanged);
             // 
@@ -142,15 +149,15 @@
             // 
             // dbName
             // 
-            this.dbName.Location = new System.Drawing.Point(88, 117);
+            this.dbName.Location = new System.Drawing.Point(97, 117);
             this.dbName.Name = "dbName";
-            this.dbName.Size = new System.Drawing.Size(184, 20);
+            this.dbName.Size = new System.Drawing.Size(175, 20);
             this.dbName.TabIndex = 10;
             this.dbName.TextChanged += new System.EventHandler(this.dbName_TextChanged);
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(35, 142);
+            this.button3.Location = new System.Drawing.Point(35, 143);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
             this.button3.TabIndex = 12;
@@ -158,11 +165,69 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // numericUpDown1
+            // 
+            this.numericUpDown1.Location = new System.Drawing.Point(97, 172);
+            this.numericUpDown1.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(175, 20);
+            this.numericUpDown1.TabIndex = 13;
+            // 
+            // numericUpDown2
+            // 
+            this.numericUpDown2.Location = new System.Drawing.Point(97, 198);
+            this.numericUpDown2.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.numericUpDown2.Name = "numericUpDown2";
+            this.numericUpDown2.Size = new System.Drawing.Size(175, 20);
+            this.numericUpDown2.TabIndex = 14;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(12, 174);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(63, 13);
+            this.label6.TabIndex = 15;
+            this.label6.Text = "Extract start";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(12, 200);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(79, 13);
+            this.label7.TabIndex = 16;
+            this.label7.Text = "categories start";
+            this.label7.Click += new System.EventHandler(this.label7_Click);
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(116, 224);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(156, 23);
+            this.button4.TabIndex = 17;
+            this.button4.Text = "Generate SQL statements";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.ClientSize = new System.Drawing.Size(284, 280);
+            this.Controls.Add(this.button4);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.numericUpDown2);
+            this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.dbName);
@@ -178,6 +243,8 @@
             this.Controls.Add(this.dbServer);
             this.Name = "Form1";
             this.Text = "Form1";
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -198,6 +265,11 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox dbName;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.NumericUpDown numericUpDown1;
+        private System.Windows.Forms.NumericUpDown numericUpDown2;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Button button4;
     }
 }
 
