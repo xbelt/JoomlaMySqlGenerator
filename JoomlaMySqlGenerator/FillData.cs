@@ -75,12 +75,15 @@ namespace JoomlaMySqlGenerator
 
                 if (disDe != "" && disDe != null)
                 {
-                    using (var command = new MySqlCommand("INSERT INTO " + tables[1] + " (de, en, category_id) VALUES ('" + disDe + "', '" + disEn + "', '" + lastId + "')", MySqlConnectionGenerator.ShortConnection()))
+                    disEn = disEn.Replace("'", "\\'");
+                    using (var command = new MySqlCommand("INSERT INTO " + tables[1] + " (de, en, category_id) VALUES ('" + disDe + "', '" + disEn + "', " + lastId + ")", MySqlConnectionGenerator.ShortConnection()))
                     {
                         command.ExecuteNonQuery();
                     }
                 }
             }
+            MessageBox.Show("Finished");
+            this.Close();
         }
     }
 }
