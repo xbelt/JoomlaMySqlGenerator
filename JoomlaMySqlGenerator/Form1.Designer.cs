@@ -176,6 +176,11 @@
             this.numericUpDown1.Name = "numericUpDown1";
             this.numericUpDown1.Size = new System.Drawing.Size(175, 20);
             this.numericUpDown1.TabIndex = 13;
+            this.numericUpDown1.Value = new decimal(new int[] {
+            213,
+            0,
+            0,
+            0});
             // 
             // numericUpDown2
             // 
@@ -188,6 +193,11 @@
             this.numericUpDown2.Name = "numericUpDown2";
             this.numericUpDown2.Size = new System.Drawing.Size(175, 20);
             this.numericUpDown2.TabIndex = 14;
+            this.numericUpDown2.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             // 
             // label6
             // 
@@ -206,7 +216,6 @@
             this.label7.Size = new System.Drawing.Size(79, 13);
             this.label7.TabIndex = 16;
             this.label7.Text = "categories start";
-            this.label7.Click += new System.EventHandler(this.label7_Click);
             // 
             // button4
             // 
