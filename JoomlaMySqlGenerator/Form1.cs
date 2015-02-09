@@ -14,10 +14,13 @@ namespace JoomlaMySqlGenerator
         private List<string> _categoriesEn = new List<string>(); 
         private List<Tuple<int, string>> _values = new List<Tuple<int, string>>();
         private List<Tuple<int, string>> _valuesEn = new List<Tuple<int, string>>(); 
+        private List<string> _species = new List<string>();
+        private List<string> _speciesEn = new List<string>();
         private Dictionary<string, int> _diseaseToarticleId = new Dictionary<string, int>(); 
         private Dictionary<string, int> _enDiseaseToarticleId = new Dictionary<string, int>(); 
         private Dictionary<string, int> _catsToArticleId = new Dictionary<string, int>();
         private Dictionary<string, int> _enCatsToArticleId = new Dictionary<string, int>();
+        private HashSet<string> _hashes = new HashSet<string>();
 
         public Form1()
         {
@@ -32,7 +35,10 @@ namespace JoomlaMySqlGenerator
 
         private void button1_Click(object sender, EventArgs e)
         {
-            using (var reader = (new MySqlCommand("SELECT * FROM categories ORDER BY id ASC", MySqlConnectionGenerator.ShortConnection())).ExecuteReader())
+            using (
+                var reader =
+                    (new MySqlCommand("SELECT * FROM categories ORDER BY id ASC",
+                        MySqlConnectionGenerator.ShortConnection())).ExecuteReader())
             {
                 _categories.Clear();
                 _categoriesEn.Clear();
@@ -43,14 +49,32 @@ namespace JoomlaMySqlGenerator
                 }
             }
 
-            using (var reader = (new MySqlCommand("SELECT * FROM diseases ORDER BY category_id ASC, id ASC", MySqlConnectionGenerator.ShortConnection())).ExecuteReader())
+            using (
+                var reader =
+                    (new MySqlCommand("SELECT * FROM diseases ORDER BY category_id ASC, id ASC",
+                        MySqlConnectionGenerator.ShortConnection())).ExecuteReader())
             {
                 _values.Clear();
                 _valuesEn.Clear();
                 while (reader.Read())
                 {
                     _values.Add(new Tuple<int, string>(reader.GetInt32Save("category_id"), reader.GetStringSave("de")));
-                    _valuesEn.Add(new Tuple<int, string>(reader.GetInt32Save("category_id"), reader.GetStringSave("en").Replace("'", "\\'")));
+                    _valuesEn.Add(new Tuple<int, string>(reader.GetInt32Save("category_id"),
+                        reader.GetStringSave("en").Replace("'", "\\'")));
+                }
+            }
+
+            using (
+                var reader =
+                    (new MySqlCommand("SELECT * FROM species ORDER BY id ASC",
+                        MySqlConnectionGenerator.ShortConnection())).ExecuteReader())
+            {
+                _species.Clear();
+                _speciesEn.Clear();
+                while (reader.Read())
+                {
+                    _species.Add(reader.GetStringSave("de"));
+                    _speciesEn.Add(reader.GetStringSave("en"));
                 }
             }
         }
@@ -98,6 +122,44 @@ namespace JoomlaMySqlGenerator
 
         private void button4_Click(object sender, EventArgs e)
         {
+            GenerateByDisease();
+            GenerateBySpecies();
+
+            MessageBox.Show("Finished");
+        }
+
+        private void GenerateBySpecies()
+        {
+            var id = numericUpDown3.Value;
+            var progressForm = new ProgressForm(_species.Count, "Inserting data", "Inserting species queries");
+            progressForm.Show();
+            InsertSpeciesQueries(ref id, progressForm);
+        }
+
+        private void InsertSpeciesQueries(ref decimal id, ProgressForm progressForm)
+        {
+            //is is wrong need to continue from previous
+            foreach (var spec in _species)
+            {
+                var names2 = new[]
+                {
+                    "Extrakte",
+                    "Pulver",
+                    "Pulver Getreidebasis"
+                };
+
+                var sql = new string[3];
+
+                GenerateSqlSpecies(ref sql, id);
+
+                InsertIntoJockham(sql, names2, (int)id);
+                progressForm.PerformStep();
+                id++;
+            }
+        }
+
+        private void GenerateByDisease()
+        {
             DeleteSqls();
 
             var id = numericUpDown2.Value;
@@ -115,23 +177,23 @@ namespace JoomlaMySqlGenerator
             InsertDiseaseQueries(id, progressForm, ref id2);
 
             progressForm.Reset(_valuesEn.Count, "Inserting English disease queries");
-            InsertEnDiseaseQueries(ref id3, progressForm, ref id2);
+            InsertEnDiseaseQueries(ref id, progressForm, ref id2);
 
             //Delete existing modules
             DeleteModules();
 
             //Create modules
             id = numericUpDown2.Value;
-            progressForm.Reset(_categories.Count * 3, "Inserting category modules");
-            InsertCategoryModule(id, progressForm);
+            progressForm.Reset(_categories.Count*3, "Inserting category modules");
+            InsertCategoryModule(ref id, progressForm);
 
-            progressForm.Reset(_categoriesEn.Count * 3, "Inserting English category modules");
+            progressForm.Reset(_categoriesEn.Count*3, "Inserting English category modules");
             InsertEnCategoryModules(ref id, progressForm);
 
-            progressForm.Reset(_values.Count * 3, "Inserting disease modules");
-            InsertDiseaseModule(id, progressForm);
+            progressForm.Reset(_values.Count*3, "Inserting disease modules");
+            InsertDiseaseModule(ref id, progressForm);
 
-            progressForm.Reset(_valuesEn.Count * 3, "Inserting English disease modules");
+            progressForm.Reset(_valuesEn.Count*3, "Inserting English disease modules");
             InsertEnDiseaseModule(id, progressForm);
 
             //DELETE existing articles
@@ -161,8 +223,6 @@ namespace JoomlaMySqlGenerator
             CreateEnMainPage(ref parent_id, ref lft, ref level, ref startNameId);
 
             progressForm.Close();
-
-            MessageBox.Show("Finished");
         }
 
         private void CreateEnMainPage(ref int parent_id, ref int lft, ref int level, ref int startNameId)
@@ -184,7 +244,7 @@ namespace JoomlaMySqlGenerator
             using (var command = new MySqlCommand(
                 "INSERT INTO " + dbPrefix.Text +
                 "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
-                "VALUES(" + lastid + ", '" + "Auswertung" + "', '" +
+                "VALUES(" + lastid + ", '" + "Reports" + "', '" +
                 String.Format("{0:X}", "Auswertung".GetHashCode()) +
                 "', '', '<p>Um die Auswertung einer bestimmten Krankheit zu betrachten bitte wählen Sie zuerst die dazu gehörige Kategorie:</p>\\n" +
                 GenerateMainPageLinksEn() +
@@ -383,7 +443,7 @@ namespace JoomlaMySqlGenerator
 
         private void InsertEnDiseaseModule(decimal id, ProgressForm progressForm)
         {
-            foreach (var value in _values)
+            foreach (var value in _valuesEn)
             {
                 var names = new[]
                 {
@@ -409,9 +469,9 @@ namespace JoomlaMySqlGenerator
             {
                 var names = new[]
                 {
-                    "Extracts - " + value.Item2,
-                    "Powders - " + value.Item2,
-                    "Powders on cereal basis - " + value.Item2
+                    "Extracts",
+                    "Powders",
+                    "Powders on cereal basis"
                 };
 
                 var sql = new string[3];
@@ -431,9 +491,9 @@ namespace JoomlaMySqlGenerator
             {
                 var names = new[]
                 {
-                    "Extracts - " + cat,
-                    "Powders - " + cat,
-                    "Powders on cereal basis - " + cat
+                    "Extracts",
+                    "Powders",
+                    "Powders on cereal basis"
                 };
 
                 var sql = new string[3];
@@ -468,7 +528,7 @@ namespace JoomlaMySqlGenerator
                 "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                 "VALUES(" + lastid + ", '" + "Auswertung" + "', '" +
                 String.Format("{0:X}", "Auswertung".GetHashCode()) +
-                "', '', '<p>Um die Auswertung einer bestimmten Krankheit zu betrachten bitte wählen Sie zuerst die dazu gehörige Kategorie:</p>\\n" +
+                "', '', '<p>Um die Behandlungserfolge bei einer bestimmten Krankheit zu betrachten, wählen Sie bitte zuerst unten die dazu gehörige Kategorie aus:</p>\\n" +
                 GenerateMainPageLinks() +
                 "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                 "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
@@ -521,9 +581,9 @@ namespace JoomlaMySqlGenerator
                     "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                     "VALUES(" + lastid + ", '" + category + "', '" +
                     String.Format("{0:X}", category.GetHashCode()) +
-                    "', '', '<p>Hier finden Sie die zusammengefasste Auswertung aller " + category +
-                    ". Nach der Auswertung finden Sie die Links zu den Auswertungen der specifischen Erkrankungen</p>\\n<p>{module " +
-                    names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\n" +
+                    "', '', '<p>Behandlungserfolg aller Krankheiten der Kategorie \"" + category +
+                    "\". </p>\\n<p>{module " +
+                    names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\nHier finden Sie die Links zu den Auswertungen aller Krankheiten der Kategorie " + category + 
                     GenerateLinkString(category) +
                     "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                     "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
@@ -582,7 +642,7 @@ namespace JoomlaMySqlGenerator
                     "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                     "VALUES(" + lastid + ", '" + value.Item2 + "', '" +
                     String.Format("{0:X}", value.Item2.GetHashCode()) +
-                    "', '', '<p>Hier finden Sie die Resultate zur Krankheit " + value.Item2 + ".</p>\\n<p>{module " +
+                    "', '', '<p>Behandlungserfolg der Krankheit " + value.Item2 + ".</p>\\n<p>{module " +
                     names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\n" +
                     "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                     "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
@@ -641,7 +701,7 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private void InsertDiseaseModule(decimal id, ProgressForm progressForm)
+        private void InsertDiseaseModule(ref decimal id, ProgressForm progressForm)
         {
             foreach (var value in _values)
             {
@@ -656,6 +716,14 @@ namespace JoomlaMySqlGenerator
                 for (var i = 0; i < names.Length; i++)
                 {
                     names2[i] = String.Format("{0:X}", names[i].GetHashCode());
+                    if (!_hashes.Contains(names2[i]))
+                    {
+                        _hashes.Add(names2[i]);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Whyyy");
+                    }
                 }
 
                 InsertModules(names, names2, id, progressForm);
@@ -663,7 +731,7 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private void InsertCategoryModule(decimal id, ProgressForm progressForm)
+        private void InsertCategoryModule(ref decimal id, ProgressForm progressForm)
         {
             foreach (var cat in _categories)
             {
@@ -678,6 +746,14 @@ namespace JoomlaMySqlGenerator
                 for (var i = 0; i < names.Length; i++)
                 {
                     names2[i] = String.Format("{0:X}", names[i].GetHashCode());
+                    if (!_hashes.Contains(names2[i]))
+                    {
+                        _hashes.Add(names2[i]);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Whyyy");
+                    }
                 }
 
                 InsertModules(names, names2, id, progressForm);
@@ -691,9 +767,9 @@ namespace JoomlaMySqlGenerator
             {
                 var names = new[]
                 {
-                    "Extrakte - " + value.Item2,
-                    "Pulver - " + value.Item2,
-                    "Pulver Getreidebasis - " + value.Item2
+                    "Extrakte",
+                    "Pulver",
+                    "Pulver Getreidebasis"
                 };
 
                 var sql = new string[3];
@@ -710,18 +786,18 @@ namespace JoomlaMySqlGenerator
         {
             foreach (var cat in _categories)
             {
-                var names = new[]
+                var names2 = new[]
                 {
-                    "Extrakte - " + cat,
-                    "Pulver - " + cat,
-                    "Pulver Getreidebasis - " + cat
+                    "Extrakte",
+                    "Pulver",
+                    "Pulver Getreidebasis"
                 };
 
                 var sql = new string[3];
 
                 GenerateSql(ref sql, id);
 
-                InsertIntoJockham(sql, names, (int) id);
+                InsertIntoJockham(sql, names2, (int) id);
                 progressForm.PerformStep();
                 id++;
             }
@@ -860,6 +936,60 @@ namespace JoomlaMySqlGenerator
                         "ORDER BY AVG(fs.ordering + 1) DESC " +
                     ") AS data " +
                     "GROUP BY 'Mushroom species' " +
+                    "ORDER BY 'Arithmetic mean' DESC; ";
+            }
+        }
+
+        private void GenerateSqlSpecies(ref string[] sql, decimal id)
+        {
+            for (var i = (int) numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
+            {
+                sql[(int) (i - numericUpDown1.Value)] =
+                    "SELECT data.Pilzart AS 'Krankheit', FORMAT(AVG(data.a),1) AS 'Arithmetisches Mittel', COUNT(data.Pilzart) AS 'Gesammtzahl der Teilnehmer'  " +
+                    "FROM (" +
+                    "	SELECT f.ftext AS Pilzart, AVG(fs.ordering + 1) AS a, COUNT(DISTINCT(ans.start_id)) AS b " +
+                    "	FROM y1trf_survey_force_user_answers AS ans " +
+                    "	LEFT JOIN y1trf_survey_force_scales AS fs ON ans.ans_field = fs.id " +
+                    "	JOIN y1trf_survey_force_fields AS f ON ans.answer = f.id " +
+                    "	WHERE ans.start_id IN ( " +
+                    "		SELECT ans.start_id " +
+                    "		FROM y1trf_survey_force_user_answers AS ans " +
+                    "		WHERE ans.answer = 213) " +
+                    "	AND ans.start_id IN ( " +
+                    "		SELECT ans.start_id " +
+                    "		FROM y1trf_survey_force_user_answers AS ans " +
+                    "		WHERE ans.answer = 216) " +
+                    "	AND ((ans.quest_id >= 2 AND ans.quest_id <= 25) OR ans.quest_id = 37) " +
+                    "	GROUP BY ans.start_id " +
+                    "	ORDER BY AVG(fs.ordering + 1) DESC ) AS data " +
+                    "GROUP BY data.Pilzart" +
+                    "ORDER BY 'Arithmetisches Mittel' DESC; ";
+            }
+        }
+
+        private void GenerateSqlEnSpecies(ref string[] sql, decimal id)
+        {
+            for (var i = (int)numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
+            {
+                sql[(int)(i - numericUpDown1.Value)] =
+                    "SELECT data.Pilzart AS 'Disease', FORMAT(AVG(data.a),1) AS 'Arithmetic mean', COUNT(data.Pilzart) AS 'Number of participant'  " +
+                    "FROM (" +
+                    "	SELECT f.ftext AS Pilzart, AVG(fs.ordering + 1) AS a, COUNT(DISTINCT(ans.start_id)) AS b " +
+                    "	FROM y1trf_survey_force_user_answers AS ans " +
+                    "	LEFT JOIN y1trf_survey_force_scales AS fs ON ans.ans_field = fs.id " +
+                    "	JOIN y1trf_survey_force_fields AS f ON ans.answer = f.id " +
+                    "	WHERE ans.start_id IN ( " +
+                    "		SELECT ans.start_id " +
+                    "		FROM y1trf_survey_force_user_answers AS ans " +
+                    "		WHERE ans.answer = 213) " +
+                    "	AND ans.start_id IN ( " +
+                    "		SELECT ans.start_id " +
+                    "		FROM y1trf_survey_force_user_answers AS ans " +
+                    "		WHERE ans.answer = 216) " +
+                    "	AND ((ans.quest_id >= 2 AND ans.quest_id <= 25) OR ans.quest_id = 37) " +
+                    "	GROUP BY ans.start_id " +
+                    "	ORDER BY AVG(fs.ordering + 1) DESC ) AS data " +
+                    "GROUP BY data.Pilzart" +
                     "ORDER BY 'Arithmetic mean' DESC; ";
             }
         }
