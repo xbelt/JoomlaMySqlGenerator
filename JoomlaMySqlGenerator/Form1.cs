@@ -18,9 +18,15 @@ namespace JoomlaMySqlGenerator
         private List<string> _speciesEn = new List<string>();
         private Dictionary<string, int> _diseaseToarticleId = new Dictionary<string, int>(); 
         private Dictionary<string, int> _enDiseaseToarticleId = new Dictionary<string, int>(); 
+        private Dictionary<string, int> _speciesToarticleId = new Dictionary<string, int>(); 
         private Dictionary<string, int> _catsToArticleId = new Dictionary<string, int>();
         private Dictionary<string, int> _enCatsToArticleId = new Dictionary<string, int>();
         private HashSet<string> _hashes = new HashSet<string>();
+        private decimal _finalId;
+        private int parent_id = 27;
+        private int lft = 53;
+        private int level = 3;
+        private int startNameId = 57;
 
         public Form1()
         {
@@ -133,10 +139,183 @@ namespace JoomlaMySqlGenerator
             var id = numericUpDown3.Value;
             var progressForm = new ProgressForm(_species.Count, "Inserting data", "Inserting species queries");
             progressForm.Show();
-            InsertSpeciesQueries(ref id, progressForm);
+            var id2 = _finalId;
+            InsertSpeciesQueries(id, progressForm, ref id2);
+
+            progressForm.Reset(_speciesEn.Count, "Inserting En species queries");
+            InsertSpeciesQueriesEN(ref id, progressForm, ref id2);
+
+            progressForm.Reset(_species.Count * 3, "Insert species modules");
+            id2 = _finalId;
+            InsertSpeciesModules(ref id2, progressForm);
+
+            progressForm.Reset(_speciesEn.Count * 3, "Insert en species modules");
+            InsertEnSpeciesModules(ref id2, progressForm);
+
+            progressForm.Reset(_species.Count, "Insert species articles");
+            InsertSpeciesArticles(ref parent_id, ref lft, ref level, ref startNameId, progressForm);
         }
 
-        private void InsertSpeciesQueries(ref decimal id, ProgressForm progressForm)
+        private void InsertSpeciesArticles(ref int parent_id, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
+        {
+            foreach (var value in _species)
+            {
+                var names = new[]
+                {
+                    "E" + value,
+                    "P" + value,
+                    "PG" + value
+                };
+
+                var names2 = new string[3];
+                for (var i = 0; i < names.Length; i++)
+                {
+                    names2[i] = String.Format("{0:X}", names[i].GetHashCode());
+                }
+
+                var lastid = 0;
+                using (
+                    var command =
+                        new MySqlCommand(
+                            "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
+                            "VALUES(" + parent_id + ", " + lft++ + ", " + lft++ + ", " + level +
+                            ", 'com_content.article" + startNameId++ + "', '" + value + "', '" +
+                            "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
+                            "')", MySqlConnectionGenerator.ShortConnection()))
+                {
+                    command.ExecuteNonQuery();
+                    lastid = (int)command.LastInsertedId;
+                }
+
+                using (var command = new MySqlCommand(
+                    "INSERT INTO " + dbPrefix.Text +
+                    "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
+                    "VALUES(" + lastid + ", '" + value + "', '" +
+                    String.Format("{0:X}", value.GetHashCode()) +
+                    "', '', '<p>Behandlungserfolg der Krankheit " + value + ".</p>\\n<p>{module " +
+                    names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\n" +
+                    "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
+                    "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
+                    DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") + "', '0000-00-00 00:00:00', '" +
+                    "{\"image_intro\":\"\",\"float_intro\":\"\",\"image_intro_alt\":\"\",\"image_intro_caption\":\"\",\"image_fulltext\":\"\",\"float_fulltext\":\"\",\"image_fulltext_alt\":\"\",\"image_fulltext_caption\":\"\"}" +
+                    "', '" +
+                    "{\"urla\":null,\"urlatext\":\"\",\"targeta\":\"\",\"urlb\":null,\"urlbtext\":\"\",\"targetb\":\"\",\"urlc\":null,\"urlctext\":\"\",\"targetc\":\"\"}" +
+                    "', '" +
+                    "{\"show_title\":\"\",\"link_titles\":\"\",\"show_intro\":\"\",\"show_category\":\"\",\"link_category\":\"\",\"show_parent_category\":\"\",\"link_parent_category\":\"\",\"show_author\":\"\",\"link_author\":\"\",\"show_create_date\":\"\",\"show_modify_date\":\"\",\"show_publish_date\":\"\",\"show_item_navigation\":\"\",\"show_icons\":\"\",\"show_print_icon\":\"\",\"show_email_icon\":\"\",\"show_vote\":\"\",\"show_hits\":\"\",\"show_noauth\":\"\",\"urls_position\":\"\",\"alternative_readmore\":\"\",\"article_layout\":\"\",\"show_publishing_options\":\"\",\"show_article_options\":\"\",\"show_urls_images_backend\":\"\",\"show_urls_images_frontend\":\"\"}" +
+                    "', 1,0,0,'','',1, 1, '" + "{\"robots\":\"\",\"author\":\"\",\"rights\":\"\",\"xreference\":\"\"}" +
+                    "', 0, '*', '')", MySqlConnectionGenerator.ShortConnection()))
+                {
+                    command.ExecuteNonQuery();
+                    if (!_speciesToarticleId.ContainsKey(value))
+                        _speciesToarticleId.Add(value, (int)command.LastInsertedId);
+                }
+
+                progressForm.PerformStep();
+            }
+        }
+
+        private void InsertEnSpeciesModules(ref decimal id, ProgressForm progressForm)
+        {
+            foreach (var value in _speciesEn)
+            {
+                var names = new[]
+                {
+                    "E" + value,
+                    "P" + value,
+                    "PG" + value
+                };
+
+                var names2 = new string[3];
+                for (var i = 0; i < names.Length; i++)
+                {
+                    names2[i] = String.Format("{0:X}", names[i].GetHashCode());
+                }
+
+                InsertModules(names, names2, id, progressForm);
+                id++;
+            }
+        }
+
+        private void InsertSpeciesModules(ref decimal id, ProgressForm progressForm)
+        {
+            foreach (var value in _species)
+            {
+                var names = new[]
+                {
+                    "E" + value,
+                    "P" + value,
+                    "PG" + value
+                };
+
+                var names2 = new string[3];
+                for (var i = 0; i < names.Length; i++)
+                {
+                    names2[i] = String.Format("{0:X}", names[i].GetHashCode());
+                    if (!_hashes.Contains(names2[i]))
+                    {
+                        _hashes.Add(names2[i]);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Whyyy");
+                    }
+                }
+
+                InsertModules(names, names2, id, progressForm);
+                id++;
+            }
+        }
+
+        private void InsertSpeciesQueriesEN(ref decimal id, ProgressForm progressForm, ref decimal id2)
+        {
+            foreach (var spec in _speciesEn)
+            {
+                var names2 = new[]
+                {
+                    "Extracts",
+                    "Powders",
+                    "Powders on cereal basis"
+                };
+
+                var sql = new string[3];
+
+                GenerateSqlSpeciesEN(ref sql, id);
+
+                InsertIntoJockham(sql, names2, (int)id2);
+                progressForm.PerformStep();
+                id++;
+                id2++;
+            }
+        }
+
+        private void GenerateSqlSpeciesEN(ref string[] sql, decimal id)
+        {
+            for (var i = (int)numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
+            {
+                sql[(int)(i - numericUpDown1.Value)] =
+                    "SELECT data.Pilzart AS 'Disease', FORMAT(AVG(data.a),1) AS 'Arithmetic mean', COUNT(data.Pilzart) AS 'Number of participants'  " +
+                    "FROM (" +
+                    "	SELECT f.ftext AS Pilzart, AVG(fs.ordering + 1) AS a, COUNT(DISTINCT(ans.start_id)) AS b " +
+                    "	FROM y1trf_survey_force_user_answers AS ans " +
+                    "	LEFT JOIN y1trf_survey_force_scales AS fs ON ans.ans_field = fs.id " +
+                    "	JOIN y1trf_survey_force_fields AS f ON ans.answer = f.id " +
+                    "	WHERE ans.start_id IN ( " +
+                    "		SELECT ans.start_id " +
+                    "		FROM y1trf_survey_force_user_answers AS ans " +
+                    "		WHERE ans.answer = " + i + ") " +
+                    "	AND ans.start_id IN ( " +
+                    "		SELECT ans.start_id " +
+                    "		FROM y1trf_survey_force_user_answers AS ans " +
+                    "		WHERE ans.answer = " + id + ") " +
+                    "	AND ((ans.quest_id >= 2 AND ans.quest_id <= 25) OR ans.quest_id = 37) " +
+                    "	GROUP BY ans.start_id " +
+                    "	ORDER BY AVG(fs.ordering + 1) DESC ) AS data " +
+                    "GROUP BY data.Pilzart" +
+                    "ORDER BY 'Arithmetisches Mittel' DESC; ";
+            }
+        }
+
+        private void InsertSpeciesQueries(decimal id, ProgressForm progressForm, ref decimal id2)
         {
             //is is wrong need to continue from previous
             foreach (var spec in _species)
@@ -152,9 +331,10 @@ namespace JoomlaMySqlGenerator
 
                 GenerateSqlSpecies(ref sql, id);
 
-                InsertIntoJockham(sql, names2, (int)id);
+                InsertIntoJockham(sql, names2, (int)id2);
                 progressForm.PerformStep();
                 id++;
+                id2++;
             }
         }
 
@@ -173,11 +353,12 @@ namespace JoomlaMySqlGenerator
             InsertEnCategoriesQueries(ref id, progressForm, ref id2);
 
             progressForm.Reset(_values.Count, "Inserting disease queries");
-            var id3 = id2;
             InsertDiseaseQueries(id, progressForm, ref id2);
 
             progressForm.Reset(_valuesEn.Count, "Inserting English disease queries");
             InsertEnDiseaseQueries(ref id, progressForm, ref id2);
+
+            _finalId = id2;
 
             //Delete existing modules
             DeleteModules();
@@ -201,10 +382,6 @@ namespace JoomlaMySqlGenerator
 
             //INSERT articles
             //We need to start with the specific diseases so we know the id 
-            int parent_id = 27;
-            int lft = 53;
-            int level = 3;
-            int startNameId = 57;
 
             progressForm.Reset(_values.Count, "Inserting disease articles");
             InsertDiseaseArticles(ref parent_id, ref lft, ref level, ref startNameId, progressForm);
@@ -917,7 +1094,7 @@ namespace JoomlaMySqlGenerator
             for (var i = (int) numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
             {
                 sql[(int) (i - numericUpDown1.Value)] =
-                    "SELECT Pilzart AS 'Mushroom species', FORMAT(AVG(data.a),1) AS 'Arithmetic mean', COUNT(data.Pilzart) AS 'Number of participant'  FROM " +
+                    "SELECT Pilzart AS 'Mushroom species', FORMAT(AVG(data.a),1) AS 'Arithmetic mean', COUNT(data.Pilzart) AS 'Number of participants'  FROM " +
                     "(" +
                         "SELECT f.ftext AS Pilzart, AVG(fs.ordering + 1) AS a, COUNT(DISTINCT(ans.start_id)) AS b " +
                         "FROM y1trf_survey_force_user_answers AS ans " +
