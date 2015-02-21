@@ -220,9 +220,9 @@ namespace JoomlaMySqlGenerator
             {
                 var names = new[]
                 {
-                    "E" + value,
-                    "P" + value,
-                    "PG" + value
+                    "ENE" + value,
+                    "ENP" + value,
+                    "ENPG" + value
                 };
 
                 var names2 = new string[3];
@@ -310,7 +310,7 @@ namespace JoomlaMySqlGenerator
                     "	AND ((ans.quest_id >= 2 AND ans.quest_id <= 25) OR ans.quest_id = 37) " +
                     "	GROUP BY ans.start_id " +
                     "	ORDER BY AVG(fs.ordering + 1) DESC ) AS data " +
-                    "GROUP BY data.Pilzart" +
+                    "GROUP BY data.Pilzart " +
                     "ORDER BY 'Arithmetisches Mittel' DESC; ";
             }
         }
@@ -1131,15 +1131,15 @@ namespace JoomlaMySqlGenerator
                     "	WHERE ans.start_id IN ( " +
                     "		SELECT ans.start_id " +
                     "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = 213) " +
+                    "		WHERE ans.answer = " + i + ") " +
                     "	AND ans.start_id IN ( " +
                     "		SELECT ans.start_id " +
                     "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = 216) " +
+                    "		WHERE ans.answer = " + id + ") " +
                     "	AND ((ans.quest_id >= 2 AND ans.quest_id <= 25) OR ans.quest_id = 37) " +
                     "	GROUP BY ans.start_id " +
                     "	ORDER BY AVG(fs.ordering + 1) DESC ) AS data " +
-                    "GROUP BY data.Pilzart" +
+                    "GROUP BY data.Pilzart " +
                     "ORDER BY 'Arithmetisches Mittel' DESC; ";
             }
         }
@@ -1158,11 +1158,11 @@ namespace JoomlaMySqlGenerator
                     "	WHERE ans.start_id IN ( " +
                     "		SELECT ans.start_id " +
                     "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = 213) " +
+                    "		WHERE ans.answer = " + i + ") " +
                     "	AND ans.start_id IN ( " +
                     "		SELECT ans.start_id " +
                     "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = 216) " +
+                    "		WHERE ans.answer = " + id + ") " +
                     "	AND ((ans.quest_id >= 2 AND ans.quest_id <= 25) OR ans.quest_id = 37) " +
                     "	GROUP BY ans.start_id " +
                     "	ORDER BY AVG(fs.ordering + 1) DESC ) AS data " +
