@@ -10,23 +10,24 @@ namespace JoomlaMySqlGenerator
 {
     public partial class Form1 : Form
     {
-        private List<string> _categories = new List<string>();
-        private List<string> _categoriesEn = new List<string>(); 
-        private List<Tuple<int, string>> _values = new List<Tuple<int, string>>();
-        private List<Tuple<int, string>> _valuesEn = new List<Tuple<int, string>>(); 
-        private List<string> _species = new List<string>();
-        private List<string> _speciesEn = new List<string>();
-        private Dictionary<string, int> _diseaseToarticleId = new Dictionary<string, int>(); 
-        private Dictionary<string, int> _enDiseaseToarticleId = new Dictionary<string, int>(); 
-        private Dictionary<string, int> _speciesToarticleId = new Dictionary<string, int>(); 
-        private Dictionary<string, int> _catsToArticleId = new Dictionary<string, int>();
-        private Dictionary<string, int> _enCatsToArticleId = new Dictionary<string, int>();
-        private HashSet<string> _hashes = new HashSet<string>();
+        private readonly List<string> _categories = new List<string>();
+        private readonly List<string> _categoriesEn = new List<string>(); 
+        private readonly List<Tuple<int, string>> _values = new List<Tuple<int, string>>();
+        private readonly List<Tuple<int, string>> _valuesEn = new List<Tuple<int, string>>(); 
+        private readonly List<string> _species = new List<string>();
+        private readonly List<string> _speciesEn = new List<string>();
+        private readonly Dictionary<string, int> _diseaseToarticleId = new Dictionary<string, int>(); 
+        private readonly Dictionary<string, int> _enDiseaseToarticleId = new Dictionary<string, int>(); 
+        private readonly Dictionary<string, int> _speciesToarticleId = new Dictionary<string, int>(); 
+        private readonly Dictionary<string, int> _enSpeciesToarticleId = new Dictionary<string, int>(); 
+        private readonly Dictionary<string, int> _catsToArticleId = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _enCatsToArticleId = new Dictionary<string, int>();
+        private readonly HashSet<string> _hashes = new HashSet<string>();
         private decimal _finalId;
-        private int parent_id = 27;
-        private int lft = 53;
-        private int level = 3;
-        private int startNameId = 57;
+        private int _parentId = 27;
+        private int _lft = 53;
+        private int _level = 3;
+        private int _startNameId = 57;
 
         public Form1()
         {
@@ -131,7 +132,7 @@ namespace JoomlaMySqlGenerator
             GenerateByDisease();
             GenerateBySpecies();
 
-            MessageBox.Show("Finished");
+            MessageBox.Show(@"Finished");
         }
 
         private void GenerateBySpecies()
@@ -143,7 +144,7 @@ namespace JoomlaMySqlGenerator
             InsertSpeciesQueries(id, progressForm, ref id2);
 
             progressForm.Reset(_speciesEn.Count, "Inserting En species queries");
-            InsertSpeciesQueriesEN(ref id, progressForm, ref id2);
+            InsertSpeciesQueriesEn(ref id, progressForm, ref id2);
 
             progressForm.Reset(_species.Count * 3, "Insert species modules");
             id2 = _finalId;
@@ -153,10 +154,162 @@ namespace JoomlaMySqlGenerator
             InsertEnSpeciesModules(ref id2, progressForm);
 
             progressForm.Reset(_species.Count, "Insert species articles");
-            InsertSpeciesArticles(ref parent_id, ref lft, ref level, ref startNameId, progressForm);
+            InsertSpeciesArticles(ref _parentId, ref _lft, ref _level, ref _startNameId, progressForm);
+
+            progressForm.Reset(_speciesEn.Count, "Insert en species articles");
+            InsertEnSpeciesArticles(ref _parentId, ref _lft, ref _level, ref _startNameId, progressForm);
+
+            CreateSpeciesMainPage(ref _parentId, ref _lft, ref _level, ref _startNameId);
+            CreateSpeciesMainPageEn(ref _parentId, ref _lft, ref _level, ref _startNameId);
+
+            progressForm.Close();
         }
 
-        private void InsertSpeciesArticles(ref int parent_id, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
+        private void CreateSpeciesMainPageEn(ref int parentId, ref int lft, ref int level, ref int startNameId)
+        {
+            int lastid;
+            using (
+                var command =
+                    new MySqlCommand(
+                        "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
+                        "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
+                        ", 'com_content.article" + startNameId++ + "', '" + "Reports nach Pilzart" + "', '" +
+                        "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
+                        "')", MySqlConnectionGenerator.ShortConnection()))
+            {
+                command.ExecuteNonQuery();
+                lastid = (int)command.LastInsertedId;
+            }
+
+            using (var command = new MySqlCommand(
+                "INSERT INTO " + dbPrefix.Text +
+                "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
+                "VALUES(" + lastid + ", '" + "Reports nach Pilzart" + "', '" +
+                String.Format("{0:X}", "Reports nach Pilzart".GetHashCode()) +
+                "', '', '<p>Um die Behandlungserfolge bei einer bestimmten Pilzart zu betrachten, wählen Sie bitte zuerst unten die dazu gehörige Kategorie aus:</p>\\n" +
+                GenerateMainPageEnSpeciesLinks() +
+                "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
+                "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
+                DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") + "', '0000-00-00 00:00:00', '" +
+                "{\"image_intro\":\"\",\"float_intro\":\"\",\"image_intro_alt\":\"\",\"image_intro_caption\":\"\",\"image_fulltext\":\"\",\"float_fulltext\":\"\",\"image_fulltext_alt\":\"\",\"image_fulltext_caption\":\"\"}" +
+                "', '" +
+                "{\"urla\":null,\"urlatext\":\"\",\"targeta\":\"\",\"urlb\":null,\"urlbtext\":\"\",\"targetb\":\"\",\"urlc\":null,\"urlctext\":\"\",\"targetc\":\"\"}" +
+                "', '" +
+                "{\"show_title\":\"\",\"link_titles\":\"\",\"show_intro\":\"\",\"show_category\":\"\",\"link_category\":\"\",\"show_parent_category\":\"\",\"link_parent_category\":\"\",\"show_author\":\"\",\"link_author\":\"\",\"show_create_date\":\"\",\"show_modify_date\":\"\",\"show_publish_date\":\"\",\"show_item_navigation\":\"\",\"show_icons\":\"\",\"show_print_icon\":\"\",\"show_email_icon\":\"\",\"show_vote\":\"\",\"show_hits\":\"\",\"show_noauth\":\"\",\"urls_position\":\"\",\"alternative_readmore\":\"\",\"article_layout\":\"\",\"show_publishing_options\":\"\",\"show_article_options\":\"\",\"show_urls_images_backend\":\"\",\"show_urls_images_frontend\":\"\"}" +
+                "', 1,0,0,'','',1, 1, '" + "{\"robots\":\"\",\"author\":\"\",\"rights\":\"\",\"xreference\":\"\"}" +
+                "', 0, '*', '')", MySqlConnectionGenerator.ShortConnection()))
+            {
+                command.ExecuteNonQuery();
+            }
+        }
+
+        private void CreateSpeciesMainPage(ref int parentId, ref int lft, ref int level, ref int startNameId)
+        {
+            int lastid;
+            using (
+                var command =
+                    new MySqlCommand(
+                        "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
+                        "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
+                        ", 'com_content.article" + startNameId++ + "', '" + "Auswertung nach Pilzart" + "', '" +
+                        "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
+                        "')", MySqlConnectionGenerator.ShortConnection()))
+            {
+                command.ExecuteNonQuery();
+                lastid = (int)command.LastInsertedId;
+            }
+
+            using (var command = new MySqlCommand(
+                "INSERT INTO " + dbPrefix.Text +
+                "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
+                "VALUES(" + lastid + ", '" + "Auswertung nach Pilzart" + "', '" +
+                String.Format("{0:X}", "Auswertung nach Pilzart".GetHashCode()) +
+                "', '', '<p>Um die Behandlungserfolge bei einer bestimmten Pilzart zu betrachten, wählen Sie bitte zuerst unten die dazu gehörige Kategorie aus:</p>\\n" +
+                GenerateMainPageSpeciesLinks() +
+                "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
+                "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
+                DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") + "', '0000-00-00 00:00:00', '" +
+                "{\"image_intro\":\"\",\"float_intro\":\"\",\"image_intro_alt\":\"\",\"image_intro_caption\":\"\",\"image_fulltext\":\"\",\"float_fulltext\":\"\",\"image_fulltext_alt\":\"\",\"image_fulltext_caption\":\"\"}" +
+                "', '" +
+                "{\"urla\":null,\"urlatext\":\"\",\"targeta\":\"\",\"urlb\":null,\"urlbtext\":\"\",\"targetb\":\"\",\"urlc\":null,\"urlctext\":\"\",\"targetc\":\"\"}" +
+                "', '" +
+                "{\"show_title\":\"\",\"link_titles\":\"\",\"show_intro\":\"\",\"show_category\":\"\",\"link_category\":\"\",\"show_parent_category\":\"\",\"link_parent_category\":\"\",\"show_author\":\"\",\"link_author\":\"\",\"show_create_date\":\"\",\"show_modify_date\":\"\",\"show_publish_date\":\"\",\"show_item_navigation\":\"\",\"show_icons\":\"\",\"show_print_icon\":\"\",\"show_email_icon\":\"\",\"show_vote\":\"\",\"show_hits\":\"\",\"show_noauth\":\"\",\"urls_position\":\"\",\"alternative_readmore\":\"\",\"article_layout\":\"\",\"show_publishing_options\":\"\",\"show_article_options\":\"\",\"show_urls_images_backend\":\"\",\"show_urls_images_frontend\":\"\"}" +
+                "', 1,0,0,'','',1, 1, '" + "{\"robots\":\"\",\"author\":\"\",\"rights\":\"\",\"xreference\":\"\"}" +
+                "', 0, '*', '')", MySqlConnectionGenerator.ShortConnection()))
+            {
+                command.ExecuteNonQuery();
+            }
+        }
+
+        private string GenerateMainPageSpeciesLinks()
+        {
+            return _speciesToarticleId.Aggregate("", (current, cat) => current + ("<p>-&nbsp;<a href=\"index.php?option=com_content&amp;view=article&amp;id=" + cat.Value + "&amp;catid=2\">" + cat.Key + " </a></p>\\n"));
+        }
+
+        private string GenerateMainPageEnSpeciesLinks()
+        {
+            return _enSpeciesToarticleId.Aggregate("", (current, cat) => current + ("<p>-&nbsp;<a href=\"index.php?option=com_content&amp;view=article&amp;id=" + cat.Value + "&amp;catid=2\">" + cat.Key + " </a></p>\\n"));
+        }
+
+        private void InsertEnSpeciesArticles(ref int parentId, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
+        {
+            foreach (var value in _species)
+            {
+                var names = new[]
+                {
+                    "ENE" + value,
+                    "ENP" + value,
+                    "ENPG" + value
+                };
+
+                var names2 = new string[3];
+                for (var i = 0; i < names.Length; i++)
+                {
+                    names2[i] = String.Format("{0:X}", names[i].GetHashCode());
+                }
+
+                int lastid;
+                using (
+                    var command =
+                        new MySqlCommand(
+                            "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
+                            "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
+                            ", 'com_content.article" + startNameId++ + "', '" + value + "', '" +
+                            "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
+                            "')", MySqlConnectionGenerator.ShortConnection()))
+                {
+                    command.ExecuteNonQuery();
+                    lastid = (int)command.LastInsertedId;
+                }
+
+                using (var command = new MySqlCommand(
+                    "INSERT INTO " + dbPrefix.Text +
+                    "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
+                    "VALUES(" + lastid + ", '" + value + "', '" +
+                    String.Format("{0:X}", value.GetHashCode()) +
+                    "', '', '<p>ENBehandlungserfolg der Krankheit " + value + ".</p>\\n<p>{module " +
+                    names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\n" +
+                    "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
+                    "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
+                    DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") + "', '0000-00-00 00:00:00', '" +
+                    "{\"image_intro\":\"\",\"float_intro\":\"\",\"image_intro_alt\":\"\",\"image_intro_caption\":\"\",\"image_fulltext\":\"\",\"float_fulltext\":\"\",\"image_fulltext_alt\":\"\",\"image_fulltext_caption\":\"\"}" +
+                    "', '" +
+                    "{\"urla\":null,\"urlatext\":\"\",\"targeta\":\"\",\"urlb\":null,\"urlbtext\":\"\",\"targetb\":\"\",\"urlc\":null,\"urlctext\":\"\",\"targetc\":\"\"}" +
+                    "', '" +
+                    "{\"show_title\":\"\",\"link_titles\":\"\",\"show_intro\":\"\",\"show_category\":\"\",\"link_category\":\"\",\"show_parent_category\":\"\",\"link_parent_category\":\"\",\"show_author\":\"\",\"link_author\":\"\",\"show_create_date\":\"\",\"show_modify_date\":\"\",\"show_publish_date\":\"\",\"show_item_navigation\":\"\",\"show_icons\":\"\",\"show_print_icon\":\"\",\"show_email_icon\":\"\",\"show_vote\":\"\",\"show_hits\":\"\",\"show_noauth\":\"\",\"urls_position\":\"\",\"alternative_readmore\":\"\",\"article_layout\":\"\",\"show_publishing_options\":\"\",\"show_article_options\":\"\",\"show_urls_images_backend\":\"\",\"show_urls_images_frontend\":\"\"}" +
+                    "', 1,0,0,'','',1, 1, '" + "{\"robots\":\"\",\"author\":\"\",\"rights\":\"\",\"xreference\":\"\"}" +
+                    "', 0, '*', '')", MySqlConnectionGenerator.ShortConnection()))
+                {
+                    command.ExecuteNonQuery();
+                    if (!_enSpeciesToarticleId.ContainsKey(value))
+                        _enSpeciesToarticleId.Add(value, (int)command.LastInsertedId);
+                }
+
+                progressForm.PerformStep();
+            }
+        }
+
+        private void InsertSpeciesArticles(ref int parentId, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
         {
             foreach (var value in _species)
             {
@@ -173,12 +326,12 @@ namespace JoomlaMySqlGenerator
                     names2[i] = String.Format("{0:X}", names[i].GetHashCode());
                 }
 
-                var lastid = 0;
+                int lastid;
                 using (
                     var command =
                         new MySqlCommand(
                             "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
-                            "VALUES(" + parent_id + ", " + lft++ + ", " + lft++ + ", " + level +
+                            "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
                             ", 'com_content.article" + startNameId++ + "', '" + value + "', '" +
                             "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
                             "')", MySqlConnectionGenerator.ShortConnection()))
@@ -257,7 +410,7 @@ namespace JoomlaMySqlGenerator
                     }
                     else
                     {
-                        MessageBox.Show("Whyyy");
+                        MessageBox.Show(@"Whyyy");
                     }
                 }
 
@@ -266,7 +419,7 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private void InsertSpeciesQueriesEN(ref decimal id, ProgressForm progressForm, ref decimal id2)
+        private void InsertSpeciesQueriesEn(ref decimal id, ProgressForm progressForm, ref decimal id2)
         {
             foreach (var spec in _speciesEn)
             {
@@ -279,7 +432,7 @@ namespace JoomlaMySqlGenerator
 
                 var sql = new string[3];
 
-                GenerateSqlSpeciesEN(ref sql, id);
+                GenerateSqlSpeciesEn(ref sql, id);
 
                 InsertIntoJockham(sql, names2, (int)id2);
                 progressForm.PerformStep();
@@ -288,7 +441,7 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private void GenerateSqlSpeciesEN(ref string[] sql, decimal id)
+        private void GenerateSqlSpeciesEn(ref string[] sql, decimal id)
         {
             for (var i = (int)numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
             {
@@ -384,33 +537,33 @@ namespace JoomlaMySqlGenerator
             //We need to start with the specific diseases so we know the id 
 
             progressForm.Reset(_values.Count, "Inserting disease articles");
-            InsertDiseaseArticles(ref parent_id, ref lft, ref level, ref startNameId, progressForm);
+            InsertDiseaseArticles(ref _parentId, ref _lft, ref _level, ref _startNameId, progressForm);
 
             progressForm.Reset(_valuesEn.Count, "Inserting English disease articles");
-            InsertEnDiseaseArticles(ref parent_id, ref lft, ref level, ref startNameId, progressForm);
+            InsertEnDiseaseArticles(ref _parentId, ref _lft, ref _level, ref _startNameId, progressForm);
 
             progressForm.Reset(_categories.Count, "Inserting category articles");
-            InsertCategoryArticles(ref parent_id, ref lft, ref level, ref startNameId, progressForm);
+            InsertCategoryArticles(ref _parentId, ref _lft, ref _level, ref _startNameId, progressForm);
 
             progressForm.Reset(_categoriesEn.Count, "Inserting English category articles");
-            InsertEnCategoryArticles(ref parent_id, ref lft, ref level, ref startNameId, progressForm);
+            InsertEnCategoryArticles(ref _parentId, ref _lft, ref _level, ref _startNameId, progressForm);
 
             //create main page
-            CreateMainPage(ref parent_id, ref lft, ref level, ref startNameId);
-            CreateEnMainPage(ref parent_id, ref lft, ref level, ref startNameId);
+            CreateMainPage(ref _parentId, ref _lft, ref _level, ref _startNameId);
+            CreateEnMainPage(ref _parentId, ref _lft, ref _level, ref _startNameId);
 
             progressForm.Close();
         }
 
-        private void CreateEnMainPage(ref int parent_id, ref int lft, ref int level, ref int startNameId)
+        private void CreateEnMainPage(ref int parentId, ref int lft, ref int level, ref int startNameId)
         {
             int lastid;
             using (
                 var command =
                     new MySqlCommand(
                         "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
-                        "VALUES(" + parent_id + ", " + lft++ + ", " + lft++ + ", " + level +
-                        ", 'com_content.article" + startNameId++ + "', '" + "Auswertung" + "', '" +
+                        "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
+                        ", 'com_content.article" + startNameId++ + "', '" + "Reports" + "', '" +
                         "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
                         "')", MySqlConnectionGenerator.ShortConnection()))
             {
@@ -422,7 +575,7 @@ namespace JoomlaMySqlGenerator
                 "INSERT INTO " + dbPrefix.Text +
                 "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                 "VALUES(" + lastid + ", '" + "Reports" + "', '" +
-                String.Format("{0:X}", "Auswertung".GetHashCode()) +
+                String.Format("{0:X}", "Reports".GetHashCode()) +
                 "', '', '<p>Um die Auswertung einer bestimmten Krankheit zu betrachten bitte wählen Sie zuerst die dazu gehörige Kategorie:</p>\\n" +
                 GenerateMainPageLinksEn() +
                 "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
@@ -445,7 +598,7 @@ namespace JoomlaMySqlGenerator
             return _enCatsToArticleId.Aggregate("", (current, cat) => current + ("<p>-&nbsp;<a href=\"index.php?option=com_content&amp;view=article&amp;id=" + cat.Value + "&amp;catid=2\">" + cat.Key + " </a></p>\\n"));
         }
 
-        private void InsertEnCategoryArticles(ref int parent_id, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
+        private void InsertEnCategoryArticles(ref int parentId, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
         {
             foreach (var category in _categoriesEn)
             {
@@ -462,12 +615,12 @@ namespace JoomlaMySqlGenerator
                     names2[i] = String.Format("{0:X}", names[i].GetHashCode());
                 }
 
-                var lastid = 0;
+                int lastid;
                 using (
                     var command =
                         new MySqlCommand(
                             "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
-                            "VALUES(" + parent_id + ", " + lft++ + ", " + lft++ + ", " + level +
+                            "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
                             ", 'com_content.article" + startNameId++ + "', '" + category + "', '" +
                             "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
                             "')", MySqlConnectionGenerator.ShortConnection()))
@@ -484,7 +637,7 @@ namespace JoomlaMySqlGenerator
                     "', '', '<p>Hier finden Sie die zusammengefasste Auswertung aller " + category +
                     ". Nach der Auswertung finden Sie die Links zu den Auswertungen der specifischen Erkrankungen</p>\\n<p>{module " +
                     names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\n" +
-                    GenerateLinkStringEN(category) +
+                    GenerateLinkStringEn(category) +
                     "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                     "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
                     DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") + "', '0000-00-00 00:00:00', '" +
@@ -506,7 +659,7 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private string GenerateLinkStringEN(string category)
+        private string GenerateLinkStringEn(string category)
         {
             var result = new List<string>();
             var catId = 1;
@@ -538,7 +691,7 @@ namespace JoomlaMySqlGenerator
             return resultString;
         }
 
-        private void InsertEnDiseaseArticles(ref int parent_id, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
+        private void InsertEnDiseaseArticles(ref int parentId, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
         {
             foreach (var value in _valuesEn)
             {
@@ -555,12 +708,12 @@ namespace JoomlaMySqlGenerator
                     names2[i] = String.Format("{0:X}", names[i].GetHashCode());
                 }
 
-                var lastid = 0;
+                int lastid;
                 using (
                     var command =
                         new MySqlCommand(
                             "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
-                            "VALUES(" + parent_id + ", " + lft++ + ", " + lft++ + ", " + level +
+                            "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
                             ", 'com_content.article" + startNameId++ + "', '" + value.Item2 + "', '" +
                             "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
                             "')", MySqlConnectionGenerator.ShortConnection()))
@@ -653,7 +806,7 @@ namespace JoomlaMySqlGenerator
 
                 var sql = new string[3];
 
-                GenerateSqlEN(ref sql, id);
+                GenerateSqlEn(ref sql, id);
 
                 InsertIntoJockham(sql, names, (int)id2);
                 progressForm.PerformStep();
@@ -675,7 +828,7 @@ namespace JoomlaMySqlGenerator
 
                 var sql = new string[3];
 
-                GenerateSqlEN(ref sql, id);
+                GenerateSqlEn(ref sql, id);
 
                 InsertIntoJockham(sql, names, (int)id2);
                 progressForm.PerformStep();
@@ -684,14 +837,14 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private void CreateMainPage(ref int parent_id, ref int lft, ref int level, ref int startNameId)
+        private void CreateMainPage(ref int parentId, ref int lft, ref int level, ref int startNameId)
         {
             int lastid;
             using (
                 var command =
                     new MySqlCommand(
                         "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
-                        "VALUES(" + parent_id + ", " + lft++ + ", " + lft++ + ", " + level +
+                        "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
                         ", 'com_content.article" + startNameId++ + "', '" + "Auswertung" + "', '" +
                         "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
                         "')", MySqlConnectionGenerator.ShortConnection()))
@@ -722,7 +875,7 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private void InsertCategoryArticles(ref int parent_id, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
+        private void InsertCategoryArticles(ref int parentId, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
         {
             foreach (var category in _categories)
             {
@@ -739,12 +892,12 @@ namespace JoomlaMySqlGenerator
                     names2[i] = String.Format("{0:X}", names[i].GetHashCode());
                 }
 
-                var lastid = 0;
+                int lastid;
                 using (
                     var command =
                         new MySqlCommand(
                             "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
-                            "VALUES(" + parent_id + ", " + lft++ + ", " + lft++ + ", " + level +
+                            "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
                             ", 'com_content.article" + startNameId++ + "', '" + category + "', '" +
                             "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
                             "')", MySqlConnectionGenerator.ShortConnection()))
@@ -783,7 +936,7 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private void InsertDiseaseArticles(ref int parent_id, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
+        private void InsertDiseaseArticles(ref int parentId, ref int lft, ref int level, ref int startNameId, ProgressForm progressForm)
         {
             foreach (var value in _values)
             {
@@ -800,12 +953,12 @@ namespace JoomlaMySqlGenerator
                     names2[i] = String.Format("{0:X}", names[i].GetHashCode());
                 }
 
-                var lastid = 0;
+                int lastid;
                 using (
                     var command =
                         new MySqlCommand(
                             "INSERT INTO " + dbPrefix.Text + "_assets(parent_id, lft, rgt, level, name, title, rules) " +
-                            "VALUES(" + parent_id + ", " + lft++ + ", " + lft++ + ", " + level +
+                            "VALUES(" + parentId + ", " + lft++ + ", " + lft++ + ", " + level +
                             ", 'com_content.article" + startNameId++ + "', '" + value.Item2 + "', '" +
                             "{\"core.delete\":{\"6\":1},\"core.edit\":{\"6\":1,\"4\":1},\"core.edit.state\":{\"6\":1,\"5\":1}}" +
                             "')", MySqlConnectionGenerator.ShortConnection()))
@@ -897,10 +1050,6 @@ namespace JoomlaMySqlGenerator
                     {
                         _hashes.Add(names2[i]);
                     }
-                    else
-                    {
-                        MessageBox.Show("Whyyy");
-                    }
                 }
 
                 InsertModules(names, names2, id, progressForm);
@@ -926,10 +1075,6 @@ namespace JoomlaMySqlGenerator
                     if (!_hashes.Contains(names2[i]))
                     {
                         _hashes.Add(names2[i]);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Whyyy");
                     }
                 }
 
@@ -1002,13 +1147,7 @@ namespace JoomlaMySqlGenerator
 
         private string GenerateMainPageLinks()
         {
-            var result = "";
-            foreach (var cat in _catsToArticleId)
-            {
-                result += "<p>-&nbsp;<a href=\"index.php?option=com_content&amp;view=article&amp;id=" +
-                                cat.Value + "&amp;catid=2\">" + cat.Key + " </a></p>\\n";
-            }
-            return result;
+            return _catsToArticleId.Aggregate("", (current, cat) => current + ("<p>-&nbsp;<a href=\"index.php?option=com_content&amp;view=article&amp;id=" + cat.Value + "&amp;catid=2\">" + cat.Key + " </a></p>\\n"));
         }
 
         private string GenerateLinkString(string category)
@@ -1033,14 +1172,7 @@ namespace JoomlaMySqlGenerator
                 }
             }
 
-            var resultString = "";
-            foreach (var res in result)
-            {
-                resultString += "<p>-&nbsp;<a href=\"index.php?option=com_content&amp;view=article&amp;id=" +
-                                _diseaseToarticleId[res] + "&amp;catid=2\">" + res + " </a></p>\\n";
-            }
-            return resultString;
-            //<p>-&nbsp;<a href=\"index.php?option=com_content&amp;view=article&amp;id=
+            return result.Aggregate("", (current, res) => current + ("<p>-&nbsp;<a href=\"index.php?option=com_content&amp;view=article&amp;id=" + _diseaseToarticleId[res] + "&amp;catid=2\">" + res + " </a></p>\\n"));
         }
 
         private void InsertIntoJockham(string[] sql, string[] names, int id)
@@ -1063,7 +1195,7 @@ namespace JoomlaMySqlGenerator
 
         private void GenerateSql(ref string[] sql, decimal id)
         {
-            for (int i = (int) numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
+            for (var i = (int) numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
             {
                 sql[(int) (i - numericUpDown1.Value)] =
                     "SELECT Pilzart, FORMAT(AVG(data.a),1) AS 'Arithmetisches Mittel', COUNT(data.Pilzart) AS 'Gesammtzahl der Teilnehmer'  FROM " +
@@ -1089,7 +1221,7 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private void GenerateSqlEN(ref string[] sql, decimal id)
+        private void GenerateSqlEn(ref string[] sql, decimal id)
         {
             for (var i = (int) numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
             {
@@ -1144,37 +1276,10 @@ namespace JoomlaMySqlGenerator
             }
         }
 
-        private void GenerateSqlEnSpecies(ref string[] sql, decimal id)
-        {
-            for (var i = (int)numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
-            {
-                sql[(int)(i - numericUpDown1.Value)] =
-                    "SELECT data.Pilzart AS 'Disease', FORMAT(AVG(data.a),1) AS 'Arithmetic mean', COUNT(data.Pilzart) AS 'Number of participant'  " +
-                    "FROM (" +
-                    "	SELECT f.ftext AS Pilzart, AVG(fs.ordering + 1) AS a, COUNT(DISTINCT(ans.start_id)) AS b " +
-                    "	FROM y1trf_survey_force_user_answers AS ans " +
-                    "	LEFT JOIN y1trf_survey_force_scales AS fs ON ans.ans_field = fs.id " +
-                    "	JOIN y1trf_survey_force_fields AS f ON ans.answer = f.id " +
-                    "	WHERE ans.start_id IN ( " +
-                    "		SELECT ans.start_id " +
-                    "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = " + i + ") " +
-                    "	AND ans.start_id IN ( " +
-                    "		SELECT ans.start_id " +
-                    "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = " + id + ") " +
-                    "	AND ((ans.quest_id >= 2 AND ans.quest_id <= 25) OR ans.quest_id = 37) " +
-                    "	GROUP BY ans.start_id " +
-                    "	ORDER BY AVG(fs.ordering + 1) DESC ) AS data " +
-                    "GROUP BY data.Pilzart" +
-                    "ORDER BY 'Arithmetic mean' DESC; ";
-            }
-        }
-
-        public static string Base64Encode(string plainText)
+        private static string Base64Encode(string plainText)
         {
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-            return System.Convert.ToBase64String(plainTextBytes);
+            return Convert.ToBase64String(plainTextBytes);
         }
     }
 }
