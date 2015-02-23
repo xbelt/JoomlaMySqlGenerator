@@ -1225,27 +1225,7 @@ namespace JoomlaMySqlGenerator
         {
             for (var i = (int) numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
             {
-                sql[(int) (i - numericUpDown1.Value)] =
-                    "SELECT Pilzart AS 'Mushroom species', FORMAT(AVG(data.a),1) AS 'Arithmetic mean', COUNT(data.Pilzart) AS 'Number of participants'  FROM " +
-                    "(" +
-                        "SELECT f.ftext AS Pilzart, AVG(fs.ordering + 1) AS a, COUNT(DISTINCT(ans.start_id)) AS b " +
-                        "FROM y1trf_survey_force_user_answers AS ans " +
-                        "LEFT JOIN y1trf_survey_force_scales AS fs ON ans.ans_field = fs.id " +
-                        "JOIN y1trf_survey_force_fields AS f ON ans.answer = f.id " +
-                        "WHERE ans.start_id IN " +
-                            "( " +
-                            "SELECT ans.start_id FROM y1trf_survey_force_user_answers AS ans WHERE ans.answer = " + i +
-                            ") " +
-                        "AND ans.start_id IN " +
-                            "( " +
-                            "SELECT ans.start_id FROM y1trf_survey_force_user_answers AS ans WHERE ans.answer = " + id +
-                            ") " +
-                        "AND (ans.quest_id = 32 OR ans.quest_id = 37) " +
-                        "GROUP BY ans.start_id " +
-                        "ORDER BY AVG(fs.ordering + 1) DESC " +
-                    ") AS data " +
-                    "GROUP BY 'Mushroom species' " +
-                    "ORDER BY 'Arithmetic mean' DESC; ";
+                sql[(int)(i - numericUpDown1.Value)] = GenerateSql("Mushroom species", "Arithmetic mean", "Number of participants", i, id);
             }
         }
 
@@ -1253,8 +1233,14 @@ namespace JoomlaMySqlGenerator
         {
             for (var i = (int) numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
             {
-                sql[(int) (i - numericUpDown1.Value)] =
-                    "SELECT data.Pilzart AS 'Krankheit', FORMAT(AVG(data.a),1) AS 'Arithmetisches Mittel', COUNT(data.Pilzart) AS 'Gesammtzahl der Teilnehmer'  " +
+                sql[(int) (i - numericUpDown1.Value)] = GenerateSql("Krankheit", "Arithmetisches Mittel",
+                    "Gesammtzahl der Teilnehmer", i, id);
+            }
+        }
+
+        private string GenerateSql(string text1, string text2, string text3, int id1, decimal id2)
+        {
+            return "SELECT data.Pilzart AS '" + text1 + "', FORMAT(AVG(data.a),1) AS '" + text2 + "', COUNT(data.Pilzart) AS '" + text3 + "'  " +
                     "FROM (" +
                     "	SELECT f.ftext AS Pilzart, AVG(fs.ordering + 1) AS a, COUNT(DISTINCT(ans.start_id)) AS b " +
                     "	FROM y1trf_survey_force_user_answers AS ans " +
@@ -1263,17 +1249,16 @@ namespace JoomlaMySqlGenerator
                     "	WHERE ans.start_id IN ( " +
                     "		SELECT ans.start_id " +
                     "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = " + i + ") " +
+                    "		WHERE ans.answer = " + id1 + ") " +
                     "	AND ans.start_id IN ( " +
                     "		SELECT ans.start_id " +
                     "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = " + id + ") " +
+                    "		WHERE ans.answer = " + id2 + ") " +
                     "	AND ((ans.quest_id >= 2 AND ans.quest_id <= 25) OR ans.quest_id = 37) " +
                     "	GROUP BY ans.start_id " +
                     "	ORDER BY AVG(fs.ordering + 1) DESC ) AS data " +
                     "GROUP BY data.Pilzart " +
-                    "ORDER BY 'Arithmetisches Mittel' DESC; ";
-            }
+                    "ORDER BY '" + text2 + "' DESC; ";
         }
 
         private static string Base64Encode(string plainText)
