@@ -445,26 +445,8 @@ namespace JoomlaMySqlGenerator
         {
             for (var i = (int)numericUpDown1.Value; i < numericUpDown1.Value + 3; i++)
             {
-                sql[(int)(i - numericUpDown1.Value)] =
-                    "SELECT data.Pilzart AS 'Disease', FORMAT(AVG(data.a),1) AS 'Arithmetic mean', COUNT(data.Pilzart) AS 'Number of participants'  " +
-                    "FROM (" +
-                    "	SELECT f.ftext AS Pilzart, AVG(fs.ordering + 1) AS a, COUNT(DISTINCT(ans.start_id)) AS b " +
-                    "	FROM y1trf_survey_force_user_answers AS ans " +
-                    "	LEFT JOIN y1trf_survey_force_scales AS fs ON ans.ans_field = fs.id " +
-                    "	JOIN y1trf_survey_force_fields AS f ON ans.answer = f.id " +
-                    "	WHERE ans.start_id IN ( " +
-                    "		SELECT ans.start_id " +
-                    "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = " + i + ") " +
-                    "	AND ans.start_id IN ( " +
-                    "		SELECT ans.start_id " +
-                    "		FROM y1trf_survey_force_user_answers AS ans " +
-                    "		WHERE ans.answer = " + id + ") " +
-                    "	AND ((ans.quest_id >= 2 AND ans.quest_id <= 25) OR ans.quest_id = 37) " +
-                    "	GROUP BY ans.start_id " +
-                    "	ORDER BY AVG(fs.ordering + 1) DESC ) AS data " +
-                    "GROUP BY data.Pilzart " +
-                    "ORDER BY 'Arithmetisches Mittel' DESC; ";
+                sql[(int) (i - numericUpDown1.Value)] = GenerateSql("Disease", "Arithmetic mean",
+                    "Number of participants", i, id);
             }
         }
 
