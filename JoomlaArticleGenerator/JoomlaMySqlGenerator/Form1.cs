@@ -184,9 +184,9 @@ namespace JoomlaMySqlGenerator
             using (var command = new MySqlCommand(
                 "INSERT INTO " + dbPrefix.Text +
                 "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
-                "VALUES(" + lastid + ", '" + "Reports nach Pilzart" + "', '" +
+                "VALUES(" + lastid + ", '" + "Evaluation" + "', '" +
                 String.Format("{0:X}", "Reports nach Pilzart".GetHashCode()) +
-                "', '', '<p>Um die Behandlungserfolge bei einer bestimmten Pilzart zu betrachten, wählen Sie bitte zuerst unten die dazu gehörige Kategorie aus:</p>\\n" +
+                "', '', '<p>In order to study the effects of treatments with a particular mushroom, please select below the corresponding category first:</p>\\n" +
                 GenerateMainPageEnSpeciesLinks() +
                 "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                 "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
@@ -287,7 +287,7 @@ namespace JoomlaMySqlGenerator
                     "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                     "VALUES(" + lastid + ", '" + value + "', '" +
                     String.Format("{0:X}", value.GetHashCode()) +
-                    "', '', '<p>ENBehandlungserfolg der Krankheit " + value + ".</p>\\n<p>{module " +
+                    "', '', '<p>Results of treatment with " + value + ".</p>\\n<p>{module " +
                     names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\n" +
                     "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                     "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
@@ -345,7 +345,7 @@ namespace JoomlaMySqlGenerator
                     "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                     "VALUES(" + lastid + ", '" + value + "', '" +
                     String.Format("{0:X}", value.GetHashCode()) +
-                    "', '', '<p>Behandlungserfolg der Krankheit " + value + ".</p>\\n<p>{module " +
+                    "', '', '<p>Behandlungserfolg mit " + value + ".</p>\\n<p>{module " +
                     names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\n" +
                     "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                     "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
@@ -558,7 +558,7 @@ namespace JoomlaMySqlGenerator
                 "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                 "VALUES(" + lastid + ", '" + "Reports" + "', '" +
                 String.Format("{0:X}", "Reports".GetHashCode()) +
-                "', '', '<p>Um die Auswertung einer bestimmten Krankheit zu betrachten bitte wählen Sie zuerst die dazu gehörige Kategorie:</p>\\n" +
+                "', '', '<p>In order to study the effects of treatments of a particular disease please select below the corresponding category first:</p>\\n" +
                 GenerateMainPageLinksEn() +
                 "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                 "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
@@ -616,9 +616,10 @@ namespace JoomlaMySqlGenerator
                     "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                     "VALUES(" + lastid + ", '" + category + "', '" +
                     String.Format("{0:X}", category.GetHashCode()) +
-                    "', '', '<p>Hier finden Sie die zusammengefasste Auswertung aller " + category +
-                    ". Nach der Auswertung finden Sie die Links zu den Auswertungen der specifischen Erkrankungen</p>\\n<p>{module " +
+                    "', '', '<p>Treatment results of all diseases in the category " + category +
+                    ".</p>\\n<p>{module " +
                     names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\n" +
+                    "Here you will find the links to the ecaluations of all diseases in the category " + category + "\\n" + 
                     GenerateLinkStringEn(category) +
                     "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                     "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
@@ -709,7 +710,7 @@ namespace JoomlaMySqlGenerator
                     "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                     "VALUES(" + lastid + ", '" + value.Item2 + "', '" +
                     String.Format("{0:X}", value.Item2.GetHashCode()) +
-                    "', '', '<p>Hier finden Sie die Resultate zur Krankheit " + value.Item2 + ".</p>\\n<p>{module " +
+                    "', '', '<p>Treatment results of the disease " + value.Item2 + ".</p>\\n<p>{module " +
                     names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\n" +
                     "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
                     "', 84, '', '0000-00-00 00:00:00', 0, 0, '0000-00-00 00:00:00', '" +
@@ -893,8 +894,8 @@ namespace JoomlaMySqlGenerator
                     "_content(`asset_id`, `title`, `alias`, `title_alias`, `introtext`, `fulltext`, `state`, `sectionid`, `mask`, `catid`, `created`, `created_by`, `created_by_alias`, `modified`, `modified_by`, `checked_out`, `checked_out_time`, `publish_up`, `publish_down`, `images`, `urls`, `attribs`, `version`, `parentid`, `ordering`, `metakey`, `metadesc`, `access`, `hits`, `metadata`, `featured`, `language`, `xreference`)" +
                     "VALUES(" + lastid + ", '" + category + "', '" +
                     String.Format("{0:X}", category.GetHashCode()) +
-                    "', '', '<p>Behandlungserfolg aller Krankheiten der Kategorie \"" + category +
-                    "\". </p>\\n<p>{module " +
+                    "', '', '<p>Behandlungserfolg aller Krankheiten der Kategorie " + category +
+                    ". </p>\\n<p>{module " +
                     names2[0] + "}</p>\\n<p>{module " + names2[1] + "}</p>\\n<p>{module " + names2[2] + "}</p>\\nHier finden Sie die Links zu den Auswertungen aller Krankheiten der Kategorie " + category + 
                     GenerateLinkString(category) +
                     "', '', 1, 0, 0, 2, '" + DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd hh:mm:ss") +
